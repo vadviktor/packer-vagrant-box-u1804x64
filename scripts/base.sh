@@ -1,8 +1,14 @@
 #!/bin/bash -eux
 
+# move files to places
+mv /tmp/pt /usr/bin/pt
+
 aptitude update && \
 aptitude full-upgrade -y && \
 aptitude install -y cifs-utils \
+                    dnsutils \
+                    jq \
+                    silversearcher-ag \
                     git
 
 sed -i -e 's/noatime,/noatime,acl,/g' /etc/fstab
