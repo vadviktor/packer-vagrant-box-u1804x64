@@ -9,13 +9,10 @@ aptitude install -y \
     software-properties-common
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 apt-key fingerprint 0EBFCD88
-# adding xenial version untin Bionic becomes available
 add-apt-repository \
-    "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
-# add-apt-repository \
-#    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-#    $(lsb_release -cs) \
-#    stable"
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
 aptitude update
 aptitude install -y docker-ce
 
