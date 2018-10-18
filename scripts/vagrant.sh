@@ -1,4 +1,11 @@
-#!/bin/bash -eux
+#!/bin/bash
+
+echo "vagrant.sh"
+
+sed -i "s/^.*requiretty/#Defaults requiretty/" /etc/sudoers
+printf "vagrant ALL=(ALL) NOPASSWD: ALL\n" > /etc/sudoers.d/vagrant
+chmod 0440 /etc/sudoers.d/vagrant
+usermod -a -G sudo vagrant
 
 mkdir -p /home/vagrant/.ssh
 wget --no-check-certificate \

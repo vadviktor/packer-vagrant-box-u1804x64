@@ -1,23 +1,18 @@
-#!/bin/bash -eux
+#!/bin/bash
 
-# move files to places
-mv /tmp/pt /usr/bin/pt
-
-aptitude update && \
-aptitude full-upgrade -y && \
-aptitude install -y cifs-utils \
-                    dnsutils \
-                    jq \
-                    silversearcher-ag \
-                    git
+echo "base.sh"
 
 sed -i -e 's/noatime,/noatime,acl,/g' /etc/fstab
-
-echo %vagrant ALL=NOPASSWD:ALL > /etc/sudoers.d/vagrant
-chmod 0440 /etc/sudoers.d/vagrant
-usermod -a -G sudo vagrant
 
 echo "UseDNS no" >> /etc/ssh/sshd_config
 
 echo "fs.inotify.max_user_watches = 524288" > /etc/sysctl.d/55-watch.conf
 echo "vm.swappiness = 0" > /etc/sysctl.d/50-swappiness.conf
+
+aptitude install -y haveged
+systemctl enable haveged.service
+
+chown -R vagrant:vagrant /home/vagrant/bin
+chmod -R u+x /home/vagrant/bin
+
+chsh -s /bin/zsh vagrant

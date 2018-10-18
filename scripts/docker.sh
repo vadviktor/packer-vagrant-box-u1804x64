@@ -1,4 +1,6 @@
-#!/bin/bash -eux
+#!/bin/bash
+
+echo "docker.sh"
 
 # install mandatory packages
 aptitude update

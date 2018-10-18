@@ -1,0 +1,514 @@
+ #####  #       ####### ######     #    #        #####
+#     # #       #     # #     #   # #   #       #     #
+#       #       #     # #     #  #   #  #       #
+#  #### #       #     # ######  #     # #        #####
+#     # #       #     # #     # ####### #             #
+#     # #       #     # #     # #     # #       #     #
+ #####  ####### ####### ######  #     # #######  #####
+
+PATH="/usr/local/bin:/usr/local/sbin/:$PATH"
+export PATH="$HOME/bin:$PATH"
+export EDITOR="micro"
+export TERM=xterm-256color
+export MICRO_TRUECOLOR=1
+
+#######  #####  #     #
+     #  #     # #     #
+    #   #       #     #
+   #     #####  #######
+  #           # #     #
+ #      #     # #     #
+#######  #####  #     #
+
+# Some interesting keybindings
+#
+# Keybinding | Meaning
+# ctrl-d     | complete + EOF
+# ctrl-l     | clear screen
+# ctrl-w     | delete last word
+# ctrl-\_    | undo
+# tab        | complete and take first result
+# esc-.      | insert last parameter of last typed command (similar to typing !$)
+# ctrl-a     | begin of line
+# ctrl-e     | end of line
+# alt-’      | quote-line (”)
+# alt-?      | which-command
+# ctrl-k     | kill line
+# ctrl-u     | kill while line (kill-ring)
+# ctrl-w     | copy last word (kill-ring)
+# ctrl-y     | yank (insert kill-ring)
+# esc-q      | push line
+
+# Make sure that the terminal is in application mode when zle is active, since
+# only then values from $terminfo are valid
+if (( ${+terminfo[smkx]} )) && (( ${+terminfo[rmkx]} )); then
+    function zle-line-init() {
+        echoti smkx
+    }
+    function zle-line-finish() {
+        echoti rmkx
+    }
+    zle -N zle-line-init
+    zle -N zle-line-finish
+fi
+
+bindkey -e                                            # Use emacs key bindings
+
+bindkey '\ew' kill-region                             # [Esc-w] - Kill from the cursor to the mark
+bindkey -s '\el' 'ls\n'                               # [Esc-l] - run command: ls
+bindkey '^r' history-incremental-search-backward      # [Ctrl-r] - Search backward incrementally for a specified string. The string may begin with ^ to anchor the search to the beginning of the line.
+if [[ "${terminfo[kpp]}" != "" ]]; then
+    bindkey "${terminfo[kpp]}" up-line-or-history       # [PageUp] - Up a line of history
+fi
+if [[ "${terminfo[knp]}" != "" ]]; then
+    bindkey "${terminfo[knp]}" down-line-or-history     # [PageDown] - Down a line of history
+fi
+
+# start typing + [Up-Arrow] - fuzzy find history forward
+if [[ "${terminfo[kcuu1]}" != "" ]]; then
+    autoload -U up-line-or-beginning-search
+    zle -N up-line-or-beginning-search
+    bindkey "${terminfo[kcuu1]}" up-line-or-beginning-search
+fi
+# start typing + [Down-Arrow] - fuzzy find history backward
+if [[ "${terminfo[kcud1]}" != "" ]]; then
+    autoload -U down-line-or-beginning-search
+    zle -N down-line-or-beginning-search
+    bindkey "${terminfo[kcud1]}" down-line-or-beginning-search
+fi
+
+if [[ "${terminfo[khome]}" != "" ]]; then
+    bindkey "${terminfo[khome]}" beginning-of-line      # [Home] - Go to beginning of line
+fi
+if [[ "${terminfo[kend]}" != "" ]]; then
+    bindkey "${terminfo[kend]}"  end-of-line            # [End] - Go to end of line
+fi
+
+bindkey ' ' magic-space                               # [Space] - do history expansion
+
+bindkey '^[[1;5C' forward-word                        # [Ctrl-RightArrow] - move forward one word
+bindkey '^[[1;5D' backward-word                       # [Ctrl-LeftArrow] - move backward one word
+
+if [[ "${terminfo[kcbt]}" != "" ]]; then
+    bindkey "${terminfo[kcbt]}" reverse-menu-complete   # [Shift-Tab] - move through the completion menu backwards
+fi
+
+bindkey '^?' backward-delete-char                     # [Backspace] - delete backward
+if [[ "${terminfo[kdch1]}" != "" ]]; then
+    bindkey "${terminfo[kdch1]}" delete-char            # [Delete] - delete forward
+else
+    bindkey "^[[3~" delete-char
+    bindkey "^[3;5~" delete-char
+    bindkey "\e[3~" delete-char
+fi
+
+# Edit the current command line in $EDITOR
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey '\C-x\C-e' edit-command-line
+
+# file rename magick
+bindkey "^[m" copy-prev-shell-word
+
+# ---
+
+setopt PROMPT_SUBST # Make sure prompt is able to be generated properly.
+setopt NO_GLOBAL_RCS
+setopt COMPLETE_ALIASES
+
+zstyle ':completion:*' rehash true
+#zstyle ':completion:*' menu select
+setopt MENU_COMPLETE
+
+
+# use colours in completion
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+
+# match uppercase from lowercase
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+## add colors to processes for kill completion
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+
+# man zshoptions
+# How to I get a listing of all my currently in use options?
+# $ setopt ksh_option_print && setopt
+
+# Makes find(1) useless for many jobs.
+#
+# % setopt extendedglob
+# % rm ../debianpackage(.)   # remove files only
+# % ls -d *(/)               # list directories only
+# % ls /etc/*(@)             # list symlinks only
+# % ls -l *.(png|jpg|gif)    # list pictures only
+# % ls *(*)                  # list executables only
+# % ls /etc/**/zsh           # which directories contain 'zsh'?
+# % ls **/*(-@)              # list dangling symlinks ('**' recurses down directory trees)
+# % ls foo*~*bar*            # match everything that starts with foo but doesn't contain bar
+# The e glob qualifier - e.g. to match all files of which file says that they are JPEGs:
+#
+# % ls *(e:'file $REPLY | grep -q JPEG':)
+# (#s) or (#e) for what ^ and $ are in regexps (beginning of line/end of line)
+# (#b) or (#m) to enable backreferences
+# (#i) to match case insensitive
+# (#a) to match approximately (certain errors are ignored, e.g. “(#a1)foo*” matches the string “ofobar”)
+setopt extendedglob
+
+#     # ###  #####  ####### ####### ######  #     #
+#     #  #  #     #    #    #     # #     #  #   #
+#     #  #  #          #    #     # #     #   # #
+#######  #   #####     #    #     # ######     #
+#     #  #        #    #    #     # #   #      #
+#     #  #  #     #    #    #     # #    #     #
+#     # ###  #####     #    ####### #     #    #
+
+# % history  # last 16 events
+# % history -E 0  # all history events including date/time information
+# % !23      # Re-execute history command 23
+# % !!       # The last command.
+# % !$       # Last word of the last command.
+# % !-2      # The last but one command.
+# % !-2$     # The last word of the command before the last command.
+# % !#$      # The last word of the current command line.
+# % !#0      # The first word of the current command line.
+# % !?foo    # The last command that matches the pattern `foo'.
+# % !?foo?1  # The second word of the last command line that matches `foo'.
+
+alias history="history -i 1" # History from frist entry to the last
+HISTFILE="$HOME/.zhistory"
+HISTSIZE=10000000
+SAVEHIST=10000000
+setopt BANG_HIST                 # Treat the '!' character specially during expansion.
+setopt EXTENDED_HISTORY          # Write the history file in the ":start:elapsed;command" format.
+setopt INC_APPEND_HISTORY        # Write to the history file immediately, not when the shell exits.
+setopt SHARE_HISTORY             # Share history between all sessions.
+setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
+setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again.
+setopt HIST_IGNORE_ALL_DUPS      # Delete old recorded entry if new entry is a duplicate.
+setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
+setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space.
+setopt HIST_SAVE_NO_DUPS         # Don't write duplicate entries in the history file.
+setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
+setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
+setopt HIST_BEEP                 # Beep when accessing nonexistent history.
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+[[ -n "$key[Up]"   ]] && bindkey -- "$key[Up]"   up-line-or-beginning-search
+[[ -n "$key[Down]" ]] && bindkey -- "$key[Down]" down-line-or-beginning-search
+
+   #    #       ###    #     #####  #######  #####
+  # #   #        #    # #   #     # #       #     #
+ #   #  #        #   #   #  #       #       #
+#     # #        #  #     #  #####  #####    #####
+####### #        #  #######       # #             #
+#     # #        #  #     # #     # #       #     #
+#     # ####### ### #     #  #####  #######  #####
+
+# ###
+# Run commands without alias:
+# \apt-get -y install
+# "apt-get" -y install
+# ###
+
+alias zshreload="source ~/.zshrc"
+alias zshedit="${EDITOR} ~/.zshrc"
+# enabling sudo to use user aliases
+alias sudo="sudo "
+alias sue="SUDO_EDITOR=/home/ikon/bin/micro sudoedit"
+
+alias cls="tput sgr0 && tput clear"
+alias grep='grep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}'
+
+alias ls='ls --color=auto'
+alias l="ls -p"
+alias la="ls -pa"
+alias ll="ls -lh"
+alias lll="ls -palh"
+
+alias c="cd -P" # resolving symlinks to absolute path
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+
+alias entar="tar -chvf"
+alias entargz="tar -czhvf"
+alias entarbz="tar -cjhvf"
+alias entarxz="tar -cJhvf"
+alias untar="tar -xvf"
+alias untargz="tar -xvzf"
+alias untarbz="tar -xvjf"
+alias untarxz="tar -xvJf"
+
+alias md="mkdir -pv"
+alias rm="rm -iv"
+
+alias figlet="figlet -f banner"
+
+alias diff='diff --color=auto'
+alias gpg-list-secrets-long="gpg --list-secret-keys --keyid-format LONG"
+alias gpg-agent-reload="gpg-connect-agent reloadagent /bye"
+
+# tree for files
+alias ta="tree -ahC | less"
+# tree for files with permissions
+alias tap="tree -augphC | less"
+# tree for dirs
+alias td="tree -dC | less"
+# tree for dirs with permissions
+alias tdp="tree -dugpC | less"
+
+# disk usage without noise
+alias dfh="df -x tmpfs -x devtmpfs -x squashfs -h"
+
+# show listening ipv4 tcp processes
+alias sslt="ss -n -t -l -p"
+
+alias rsync-copy="rsync -avz --progress -h"
+alias rsync-move="rsync -avz --progress -h --remove-source-files"
+alias rsync-update="rsync -avzu --progress -h"
+alias rsync-synchronize="rsync -avzu --delete --progress -h"
+
+d='dirs -v | head -10'
+1='cd -'
+2='cd -2'
+3='cd -3'
+4='cd -4'
+5='cd -5'
+6='cd -6'
+7='cd -7'
+8='cd -8'
+9='cd -9'
+
+####### ####### #######
+#            #  #
+#           #   #
+#####      #    #####
+#         #     #
+#        #      #
+#       ####### #
+
+# Setting fd (https://github.com/sharkdp/fd) as the default source for fzf
+export FZF_DEFAULT_COMMAND='fd --type f'
+# To apply the command to CTRL-T as well
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+# cdf - cd into the directory of the selected file
+cdf() {
+    local file
+    local dir
+    file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
+}
+
+# fh - repeat history
+fh() {
+    print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+}
+
+# fd - cd to selected directory
+fd() {
+    local dir
+    dir=$(find ${1:-.} -path '*/\.*' -prune \
+        -o -type d -print 2> /dev/null | fzf +m) &&
+    cd "$dir"
+}
+
+# fda - including hidden directories
+fda() {
+    local dir
+    dir=$(find ${1:-.} -type d 2> /dev/null | fzf +m) && cd "$dir"
+}
+
+# fdr - cd to selected parent directory
+fdr() {
+    local declare dirs=()
+    get_parent_dirs() {
+        if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
+        if [[ "${1}" == '/' ]]; then
+            for _dir in "${dirs[@]}"; do echo $_dir; done
+        else
+            get_parent_dirs $(dirname "$1")
+        fi
+    }
+    local DIR=$(get_parent_dirs $(realpath "${1:-$PWD}") | fzf-tmux --tac)
+    cd "$DIR"
+}
+
+# fkill - kill processes - list only the ones you can kill. Modified the earlier script.
+fkill() {
+    local pid
+    if [ "$UID" != "0" ]; then
+        pid=$(ps -f -u $UID | sed 1d | fzf -m | awk '{print $2}')
+    else
+        pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+    fi
+
+    if [ "x$pid" != "x" ]
+    then
+        echo $pid | xargs kill -${1:-9}
+    fi
+}
+
+# fkilla - kill process (showing all)
+fkilla() {
+  local pid
+  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+
+  if [ "x$pid" != "x" ]
+  then
+    echo $pid | xargs kill -${1:-9}
+  fi
+}
+
+ #####  ### #######
+#     #  #     #
+#        #     #
+#  ####  #     #
+#     #  #     #
+#     #  #     #
+ #####  ###    #
+
+alias gss="git status --short --branch"
+alias gp="git pull -v"
+alias ga="git add"
+alias gc="git commit -m"
+
+######  #######  #####  #    # ####### ######
+#     # #     # #     # #   #  #       #     #
+#     # #     # #       #  #   #       #     #
+#     # #     # #       ###    #####   ######
+#     # #     # #       #  #   #       #   #
+#     # #     # #     # #   #  #       #    #
+######  #######  #####  #    # ####### #     #
+
+alias di="docker image ls | head -n 1; docker image ls | tail -n +2 | sort"
+alias dps="docker ps"
+alias dpsa="docker ps -a"
+alias drm="docker rm -v"
+alias drmi="docker rmi"
+alias dv="docker volume"
+
+####### #     # #     #  #####  ####### ### ####### #     #  #####
+#       #     # ##    # #     #    #     #  #     # ##    # #     #
+#       #     # # #   # #          #     #  #     # # #   # #
+#####   #     # #  #  # #          #     #  #     # #  #  #  #####
+#       #     # #   # # #          #     #  #     # #   # #       #
+#       #     # #    ## #     #    #     #  #     # #    ## #     #
+#        #####  #     #  #####     #    ### ####### #     #  #####
+
+# highlight the search criteria with printing the original text too
+function grepe {
+    grep --color -E "$1|$" $2
+}
+
+# Remove dead symlinks from folder
+function remove-dead-symlinks {
+    sudo find "$1" -type l -xtype l -exec rm -fv {} \;
+}
+
+######  #     # ####### #     # ####### #     #
+#     #  #   #     #    #     # #     # ##    #
+#     #   # #      #    #     # #     # # #   #
+######     #       #    ####### #     # #  #  #
+#          #       #    #     # #     # #   # #
+#          #       #    #     # #     # #    ##
+#          #       #    #     # ####### #     #
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+export PYTHON_CFLAGS='-O2'
+export PYTHON_MAKE_OPTS='-j3'
+
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+# Disable printing the virtualenv's name it just changed to.
+export VIRTUAL_ENV_DISABLE_PROMPT=true
+
+alias ipy="ptipython"
+alias ipy2="ptipython2"
+alias ipy3="ptipython3"
+alias pipir="pip install -U -r"
+alias pipir2="pip2 install -U -r"
+alias pipir3="pip3 install -U -r"
+
+######  #       #     #  #####  ### #     #  #####
+#     # #       #     # #     #  #  ##    # #     #
+#     # #       #     # #        #  # #   # #
+######  #       #     # #  ####  #  #  #  #  #####
+#       #       #     # #     #  #  #   # #       #
+#       #       #     # #     #  #  #    ## #     #
+#       #######  #####   #####  ### #     #  #####
+
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+#     #    #    #     #
+##   ##   # #   ##    #
+# # # #  #   #  # #   #
+#  #  # #     # #  #  #
+#     # ####### #   # #
+#     # #     # #    ##
+#     # #     # #     #
+
+man() {
+    LESS_TERMCAP_md=$'\e[01;31m' \
+    LESS_TERMCAP_me=$'\e[0m' \
+    LESS_TERMCAP_se=$'\e[0m' \
+    LESS_TERMCAP_so=$'\e[01;44;33m' \
+    LESS_TERMCAP_ue=$'\e[0m' \
+    LESS_TERMCAP_us=$'\e[01;32m' \
+    command man "$@"
+}
+
+####### #     # ####### #     # #######
+  #    #     # #       ##   ## #
+  #    #     # #       # # # # #
+  #    ####### #####   #  #  # #####
+  #    #     # #       #     # #
+  #    #     # #       #     # #
+  #    #     # ####### #     # #######
+
+export BULLETTRAIN_CARS="os time date user host dir python go ruby nodejs php git openvpn status"
+export BULLETTRAIN_CAR_TIME_SHOW=true
+export BULLETTRAIN_CAR_DIRECTORY_ROOT_SHOW=false
+export BULLETTRAIN_CAR_PYTHON_SHOW=true
+export BULLETTRAIN_CAR_USER_SEPARATOR_SYMBOL="@"
+export BULLETTRAIN_CAR_USER_SEPARATOR_TEMPLATE="{{.Icon | c}}"
+export BULLETTRAIN_CAR_STATUS_TEMPLATE="{{.Icon | cs}}"
+
+export BULLETTRAIN_SEPARATOR_ICON=""
+export BULLETTRAIN_CAR_DATE_PAINT="red"
+export BULLETTRAIN_CAR_DATE_SYMBOL_PAINT="white"
+export BULLETTRAIN_CAR_DIRECTORY_PAINT="white"
+export BULLETTRAIN_CAR_HOST_PAINT="cyan"
+export BULLETTRAIN_CAR_OS_PAINT="white"
+export BULLETTRAIN_CAR_OS_SYMBOL_PAINT="white"
+export BULLETTRAIN_CAR_STATUS_PAINT="white"
+export BULLETTRAIN_CAR_STATUS_SYMBOL_PAINT="red"
+export BULLETTRAIN_CAR_TIME_PAINT="white"
+export BULLETTRAIN_CAR_TIME_SYMBOL_PAINT="white"
+export BULLETTRAIN_CAR_USER_PAINT="blue"
+export BULLETTRAIN_CAR_GIT_PAINT="red"
+export BULLETTRAIN_CAR_GIT_SYMBOL_PAINT="red"
+export BULLETTRAIN_CAR_GIT_DIRTY_PAINT="red"
+export BULLETTRAIN_CAR_GIT_CLEAN_PAINT="green"
+export BULLETTRAIN_CAR_GO_PAINT="123"
+export BULLETTRAIN_CAR_GO_SYMBOL_PAINT="123"
+export BULLETTRAIN_CAR_NODEJS_PAINT="green"
+export BULLETTRAIN_CAR_NODEJS_SYMBOL_PAINT="green"
+export BULLETTRAIN_CAR_PHP_PAINT="69"
+export BULLETTRAIN_CAR_PHP_SYMBOL_PAINT="69"
+export BULLETTRAIN_CAR_PYTHON_PAINT="220"
+export BULLETTRAIN_CAR_PYTHON_ICON_PAINT="32"
+export BULLETTRAIN_CAR_PYTHON_SYMBOL_PAINT="32"
+export BULLETTRAIN_CAR_PYTHON_VIRTUALENV_SYMBOL_PAINT="32"
+export BULLETTRAIN_CAR_RUBY_PAINT="red"
+export BULLETTRAIN_CAR_RUBY_SYMBOL_PAINT="red"
+
+export BULLETTRAIN_CAR_OPENVPN_PAINT="208"
+export BULLETTRAIN_CAR_OPENVPN_SYMBOL_PAINT="208"
+export BULLETTRAIN_CAR_OPENVPN_SYMBOL_PAINT_LOCKED="green"
+export BULLETTRAIN_CAR_OPENVPN_SYMBOL_PAINT_UNLOCKED="red"
+
+PROMPT='$($HOME/bin/bullettrain $?)'
+
+[ -r /home/ikon/.byobu/prompt ] && . /home/ikon/.byobu/prompt   #byobu-prompt#

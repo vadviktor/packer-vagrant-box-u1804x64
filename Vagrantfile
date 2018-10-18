@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "bionictest"
+  config.vm.box = "bionic-v3"
   config.ssh.private_key_path = "~/.ssh/vagrant_rsa"
 
   config.vm.provider "virtualbox" do |v|
@@ -9,7 +9,12 @@ Vagrant.configure("2") do |config|
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
     v.customize ["modifyvm", :id, "--ioapic", "on"]
-    v.customize ["guestproperty", "set", :id,
-"/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000]
+    v.customize [
+      "guestproperty",
+      "set",
+      :id,
+      "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold",
+      10_000
+    ]
   end
 end

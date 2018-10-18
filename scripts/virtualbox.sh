@@ -1,11 +1,12 @@
-#!/bin/bash -eux
+#!/bin/bash
 
-aptitude install -y dkms
+echo "virtualbox.sh"
 
 mkdir -p /mnt/cdrom
-mount -o loop ~/VBoxGuestAdditions.iso /mnt/cdrom
-/mnt/cdrom/VBoxLinuxAdditions.run --nox11
+mount -o loop,ro ~/VBoxGuestAdditions.iso /mnt/cdrom
+sh /mnt/cdrom/VBoxLinuxAdditions.run
 umount /mnt/cdrom
+rm -rf /mnt/cdrom
 rm -rf ~/VBoxGuestAdditions.iso
 
 usermod -a -G vboxsf vagrant
