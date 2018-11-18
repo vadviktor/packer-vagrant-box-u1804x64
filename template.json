@@ -28,7 +28,6 @@
                 "scripts/fixtty.sh",
                 "scripts/docker.sh",
                 "scripts/network.sh",
-                "scripts/virtualbox.sh",
                 "scripts/cleanup.sh",
                 "scripts/zerodisk.sh"
             ]
@@ -85,7 +84,10 @@
             "vm_name": "packer-ubuntu-18-04-x64",
             "vboxmanage": [
                 ["modifyvm", "{{.Name}}", "--memory", "512"],
-                ["modifyvm", "{{.Name}}", "--cpus", "1"]
+                ["modifyvm", "{{.Name}}", "--cpus", "1"],
+                ["modifyvm", "{{.Name}}", "--natdnshostresolver1", "on"],
+                ["modifyvm", "{{.Name}}", "--natdnsproxy1", "on"],
+                ["modifyvm", "{{.Name}}", "--ioapic", "on"]
             ]
         }
     ]

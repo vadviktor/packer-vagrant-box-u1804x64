@@ -24,7 +24,8 @@ systemctl stop snapd.service snapd.socket snapd.refresh.timer
 
 aptitude update && \
 aptitude full-upgrade -y && \
-aptitude install -y cifs-utils \
+aptitude install -y virtualbox-guest-utils \
+                    cifs-utils \
                     jq \
                     silversearcher-ag \
                     figlet \
@@ -32,4 +33,5 @@ aptitude install -y cifs-utils \
                     rsync \
                     zsh-syntax-highlighting \
                     zsh \
-                    byobu
+                    byobu \
+                    unzip

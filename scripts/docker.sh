@@ -26,7 +26,7 @@ systemctl enable docker
 mkdir -p /etc/systemd/system/docker.service.d/
 echo '[Service]' >> /etc/systemd/system/docker.service.d/override.conf
 echo 'ExecStart=' >> /etc/systemd/system/docker.service.d/override.conf
-echo 'ExecStart=/usr/bin/dockerd --dns 1.1.1.1 -H fd:// -H tcp://0.0.0.0:2375' >> /etc/systemd/system/docker.service.d/override.conf
+echo 'ExecStart=/usr/bin/dockerd --dns 1.1.1.1 -H fd:// -H tcp://0.0.0.0:2376' >> /etc/systemd/system/docker.service.d/override.conf
 
 # add docker group and add vagrant to it
 groupadd docker
