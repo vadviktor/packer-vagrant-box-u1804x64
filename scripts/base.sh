@@ -12,7 +12,7 @@ echo "vm.swappiness = 0" > /etc/sysctl.d/50-swappiness.conf
 aptitude install -y haveged
 systemctl enable haveged.service
 
-chown -R vagrant:vagrant /home/vagrant/bin
+chown -R vagrant:vagrant /home/vagrant
 chmod -R u+x /home/vagrant/bin
 
 chsh -s /bin/zsh vagrant
