@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "bionic-v3"
+  config.vm.box = "bionic-v4"
   config.ssh.private_key_path = "~/.ssh/vagrant_rsa"
 
   config.vm.provider "virtualbox" do |v|

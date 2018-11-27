@@ -29,7 +29,8 @@
                 "scripts/docker.sh",
                 "scripts/network.sh",
                 "scripts/cleanup.sh",
-                "scripts/zerodisk.sh"
+                "scripts/zerodisk.sh",
+                "scripts/zerodisk2.sh"
             ]
         }
     ],
