@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/sh -x
 
 su - vagrant -c "git clone --depth 1 https://github.com/pyenv/pyenv.git /home/vagrant/.pyenv"
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /home/vagrant/.bash_profile
