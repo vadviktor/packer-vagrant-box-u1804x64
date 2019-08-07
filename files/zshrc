@@ -8,9 +8,8 @@
 
 PATH="/usr/local/bin:/usr/local/sbin/:$PATH"
 export PATH="$HOME/bin:$PATH"
-export EDITOR="micro"
+export EDITOR="nano"
 export TERM=xterm-256color
-export MICRO_TRUECOLOR=1
 
 #######  #####  #     #
      #  #     # #     #
@@ -215,16 +214,13 @@ alias zshreload="source ~/.zshrc"
 alias zshedit="${EDITOR} ~/.zshrc"
 # enabling sudo to use user aliases
 alias sudo="sudo "
-alias sue="SUDO_EDITOR=/home/ikon/bin/micro sudoedit"
 
 alias cls="tput sgr0 && tput clear"
 alias grep='grep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}'
 
-alias ls='ls --color=auto'
-alias l="ls -p"
-alias la="ls -pa"
-alias ll="ls -lh"
-alias lll="ls -palh"
+alias l="lsd -lF"
+alias ll="lsd -laF"
+alias lt="lsd --tree"
 
 alias c="cd -P" # resolving symlinks to absolute path
 alias ..="cd .."
@@ -381,6 +377,8 @@ alias gc="git commit -m"
 #     # #     # #     # #   #  #       #    #
 ######  #######  #####  #    # ####### #     #
 
+alias d="docker"
+alias dc="docker-compose"
 alias di="docker image ls | head -n 1; docker image ls | tail -n +2 | sort"
 alias dps="docker ps"
 alias dpsa="docker ps -a"
