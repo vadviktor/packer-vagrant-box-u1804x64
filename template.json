@@ -21,6 +21,7 @@
             "scripts": [
                 "scripts/apt.sh",
                 "scripts/pyenv.sh",
+                "scripts/rbenv.sh",
                 "scripts/base.sh",
                 "scripts/floppy.sh",
                 "scripts/motd.sh",

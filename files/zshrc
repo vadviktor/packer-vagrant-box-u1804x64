@@ -206,8 +206,8 @@ zle -N down-line-or-beginning-search
 
 # ###
 # Run commands without alias:
-# \apt-get -y install
-# "apt-get" -y install
+# \apt -y install
+# "apt" -y install
 # ###
 
 alias zshreload="source ~/.zshrc"
@@ -465,7 +465,7 @@ man() {
   #    #     # #       #     # #
   #    #     # ####### #     # #######
 
-export BULLETTRAIN_CARS="os time date user host dir python go ruby nodejs php git status"
+export BULLETTRAIN_CARS="os time date user host dir python git status"
 export BULLETTRAIN_CAR_DATE_PAINT="red"
 export BULLETTRAIN_CAR_DATE_SYMBOL_PAINT="white"
 export BULLETTRAIN_CAR_DIRECTORY_PAINT="white"
